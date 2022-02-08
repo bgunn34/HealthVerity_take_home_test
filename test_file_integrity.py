@@ -1,3 +1,5 @@
+import datetime 
+
 import pytest
 import pandas as pd
 
@@ -58,15 +60,25 @@ def test_rec_date_format():
 	assert True
 
 
-def test_date_values():
+def test_date_chron():
 	# checks if all service dates < received dates.
-	serv_dts = df.loc[df['date_service'].notna(), 'date_service']
-	serv_dts = pd.to_datetime(serv_dts, format='%Y-%m-%d', errors='raise')
+	serv_dts = pd.to_datetime(df['date_service'], format='%Y-%m-%d', errors='coerce')
+	rec_dts = pd.to_datetime(df['date_received'], format='%Y-%m-%d', errors='coerce')
 
-	rec_dts = df.loc[df['date_received'].notna(), 'date_received']
-	rec_dts = pd.to_datetime(rec_dts, format='%Y-%m-%d', errors='raise')
+	print(df.loc[serv_dts > rec_dts, ['claim_id', 'date_service', 'date_received']])
 
-	assert (serve_dts < rec_dts).all()
+	assert (serv_dts < rec_dts).all()
+
+
+def test_no_future_dts():
+	# checks to make sure that all dates occured in the past.
+	today = datetime.datetime.now()
+	serv_dts = pd.to_datetime(df['date_service'], format='%Y-%m-%d', errors='coerce')
+	rec_dts = pd.to_datetime(df['date_received'], format='%Y-%m-%d', errors='coerce')
+
+	mask = (serv_dts > today) | (rec_dts > today)
+	print(df.loc[mask, ['date_service', 'date_received']])
+	assert df.loc[mask].size == 0
 
 
 def test_claim_id_na():
