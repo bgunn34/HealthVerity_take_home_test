@@ -3,3 +3,4 @@
 venv/
 *.docx
 *.zip
+__pycache__/
